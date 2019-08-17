@@ -1,7 +1,7 @@
 ### MANDATORY ###
 variable "es_cluster" {
   description = "name of cluster"
-  default = "tickmill-logging"
+  default = "logging"
 }
 
 variable "aws_region" {
@@ -11,8 +11,7 @@ variable "aws_region" {
 
 variable "vpc_id" {
   description = "VPC ID to create the Elasticsearch cluster in"
-  type = "string"
-  default = "vpc-0bdc7d6d822545e03"
+  type = "string"  
 }
 
 variable "clients_subnet_ids" {
