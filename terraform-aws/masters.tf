@@ -138,11 +138,15 @@ resource "aws_instance" "bootstrap_node" {
 resource "null_resource" "cluster_bootstrap_state" {
   provisioner "local-exec" {
     command = "printf 1 > ${path.module}/cluster_bootstrap_state"
+    interpreter = ["C:/Program Files/Git/git-bash.exe", "-c"]
   }
   provisioner "local-exec" {
     when    = "destroy"
     command = "printf 0 > ${path.module}/cluster_bootstrap_state"
+    interpreter = ["C:/Program Files/Git/git-bash.exe", "-c"]
   }
+
+
 
   depends_on = ["aws_instance.bootstrap_node"]
 }
