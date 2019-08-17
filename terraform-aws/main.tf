@@ -19,7 +19,7 @@ resource "aws_security_group" "elasticsearch_security_group" {
   description = "Elasticsearch ports with ssh"
   vpc_id = "${var.vpc_id}"
 
-  tags {
+  tags = {
     Name = "${var.es_cluster}-elasticsearch"
     cluster = "${var.es_cluster}"
   }
@@ -61,7 +61,7 @@ resource "aws_security_group" "elasticsearch_clients_security_group" {
   description = "Kibana HTTP access from outside"
   vpc_id = "${var.vpc_id}"
 
-  tags {
+  tags = {
     Name = "${var.es_cluster}-kibana"
     cluster = "${var.es_cluster}"
   }
@@ -103,7 +103,7 @@ resource "aws_elb" "es_client_lb" {
 
   name            = "${format("%s-client-lb", var.es_cluster)}"
   security_groups = ["${aws_security_group.elasticsearch_clients_security_group.id}"]
-  subnets         = ["${coalescelist(var.clients_subnet_ids, list(data.aws_subnet_ids.selected.ids[0]))}"]
+  subnets         = ["${coalescelist(var.clients_subnet_ids, list(tolist(data.aws_subnet_ids.selected.ids)[0]))}"]
   internal        = "${var.public_facing == "true" ? "false" : "true"}"
 
   cross_zone_load_balancing   = true
@@ -140,7 +140,7 @@ resource "aws_elb" "es_client_lb" {
     interval            = 6
   }
 
-  tags {
+  tags = {
     Name = "${format("%s-client-lb", var.es_cluster)}"
   }
 }

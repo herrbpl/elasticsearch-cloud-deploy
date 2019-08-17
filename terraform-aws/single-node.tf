@@ -1,7 +1,7 @@
 data "template_file" "single_node_userdata_script" {
   template = "${file("${path.module}/../templates/user_data.sh")}"
 
-  vars {
+  vars = {
     cloud_provider          = "aws"
     elasticsearch_data_dir  = "${var.elasticsearch_data_dir}"
     elasticsearch_logs_dir  = "${var.elasticsearch_logs_dir}"
@@ -58,9 +58,9 @@ resource "aws_autoscaling_group" "single_node" {
   desired_capacity = "${var.masters_count == "0" && var.datas_count == "0" ? "1" : "0"}"
   default_cooldown = 30
   force_delete = true
-  launch_configuration = "${aws_launch_configuration.single_node.id}"
+  launch_configuration = "${aws_launch_configuration.single_node[0].id}"
 
-  vpc_zone_identifier = ["${data.aws_subnet_ids.selected.ids}"]
+  vpc_zone_identifier = flatten(tolist(data.aws_subnet_ids.selected.ids))
   
   tag {
     key = "Name"

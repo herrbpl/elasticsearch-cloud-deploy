@@ -1,15 +1,18 @@
 ### MANDATORY ###
 variable "es_cluster" {
-  description = "Name of the elasticsearch cluster, used in node discovery"
+  description = "name of cluster"
+  default = "tickmill-logging"
 }
 
 variable "aws_region" {
   type = "string"
+  default = "eu-central-1"
 }
 
 variable "vpc_id" {
   description = "VPC ID to create the Elasticsearch cluster in"
   type = "string"
+  default = "vpc-0bdc7d6d822545e03"
 }
 
 variable "clients_subnet_ids" {

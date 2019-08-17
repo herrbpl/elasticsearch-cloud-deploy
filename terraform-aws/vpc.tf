@@ -32,5 +32,5 @@ resource "aws_vpc_endpoint" "ec2" {
   private_dns_enabled = true
 
   security_group_ids = ["${aws_security_group.vpc-endpoint.id}"]
-  subnet_ids = ["${coalescelist(var.cluster_subnet_ids, data.aws_subnet_ids.selected.ids)}"]
+  subnet_ids = flatten(coalescelist(var.cluster_subnet_ids, tolist(data.aws_subnet_ids.selected.ids)))
 }

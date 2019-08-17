@@ -1,7 +1,7 @@
 data "template_file" "client_userdata_script" {
   template = "${file("${path.module}/../templates/user_data.sh")}"
 
-  vars {
+  vars = {
     cloud_provider          = "aws"
     elasticsearch_data_dir  = "/var/lib/elasticsearch"
     elasticsearch_logs_dir  = "${var.elasticsearch_logs_dir}"
@@ -30,7 +30,7 @@ resource "aws_launch_configuration" "client" {
   name_prefix = "elasticsearch-${var.es_cluster}-client-nodes"
   image_id = "${data.aws_ami.kibana_client.id}"
   instance_type = "${var.master_instance_type}"
-  security_groups = ["${concat(list(aws_security_group.elasticsearch_security_group.id), list(aws_security_group.elasticsearch_clients_security_group.id), var.additional_security_groups)}"]
+  security_groups = ["${flatten(concat(list(aws_security_group.elasticsearch_security_group.id), list(aws_security_group.elasticsearch_clients_security_group.id), var.additional_security_groups))}"]
   associate_public_ip_address = false
   iam_instance_profile = "${aws_iam_instance_profile.elasticsearch.id}"
   user_data = "${data.template_file.client_userdata_script.rendered}"
@@ -51,12 +51,12 @@ resource "aws_autoscaling_group" "client_nodes" {
   desired_capacity = "${var.clients_count}"
   default_cooldown = 30
   force_delete = true
-  launch_configuration = "${aws_launch_configuration.client.id}"
+  launch_configuration = "${aws_launch_configuration.client.*.id[count.index]}"
   health_check_type = "${var.health_check_type}"
 
-  load_balancers = ["${aws_elb.es_client_lb.id}"]
+  load_balancers = ["${aws_elb.es_client_lb.*.id[count.index]}"]
 
-  vpc_zone_identifier   = ["${coalescelist(var.clients_subnet_ids, list(data.aws_subnet_ids.selected.ids[0]))}"]
+  vpc_zone_identifier   = ["${coalescelist(var.clients_subnet_ids, list(tolist(data.aws_subnet_ids.selected.ids)[0]))}"]
 
   tag {
     key                 = "Name"

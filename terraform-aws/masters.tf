@@ -5,7 +5,7 @@ data "local_file" "cluster_bootstrap_state" {
 data "template_file" "master_userdata_script" {
   template = "${file("${path.module}/../templates/user_data.sh")}"
 
-  vars {
+  vars = {
     cloud_provider          = "aws"
     elasticsearch_data_dir  = "/var/lib/elasticsearch"
     elasticsearch_logs_dir  = "${var.elasticsearch_logs_dir}"
@@ -30,7 +30,7 @@ data "template_file" "master_userdata_script" {
 data "template_file" "bootstrap_userdata_script" {
   template = "${file("${path.module}/../templates/user_data.sh")}"
 
-  vars {
+  vars = {
     cloud_provider          = "aws"
     elasticsearch_data_dir  = "/var/lib/elasticsearch"
     elasticsearch_logs_dir  = "${var.elasticsearch_logs_dir}"
@@ -57,7 +57,7 @@ resource "aws_launch_configuration" "master" {
   name_prefix = "elasticsearch-${var.es_cluster}-master-nodes"
   image_id = "${data.aws_ami.elasticsearch.id}"
   instance_type = "${var.master_instance_type}"
-  security_groups = ["${concat(list(aws_security_group.elasticsearch_security_group.id), var.additional_security_groups)}"]
+  security_groups = flatten(concat(list(aws_security_group.elasticsearch_security_group.id), var.additional_security_groups))
   associate_public_ip_address = false
   iam_instance_profile = "${aws_iam_instance_profile.elasticsearch.id}"
   user_data = "${data.template_file.master_userdata_script.rendered}"
@@ -83,7 +83,7 @@ resource "aws_autoscaling_group" "master_nodes" {
   force_delete = true
   launch_configuration = "${aws_launch_configuration.master.id}"
 
-  vpc_zone_identifier = ["${coalescelist(var.cluster_subnet_ids, data.aws_subnet_ids.selected.ids)}"]
+  vpc_zone_identifier = flatten(coalescelist(var.cluster_subnet_ids, tolist(data.aws_subnet_ids.selected.ids)))
 
   tag {
     key                 = "Name"
@@ -121,13 +121,13 @@ resource "aws_instance" "bootstrap_node" {
   ami   = "${data.aws_ami.elasticsearch.id}"
   instance_type = "${var.master_instance_type}"
   instance_initiated_shutdown_behavior = "terminate"
-  vpc_security_group_ids = ["${concat(list(aws_security_group.elasticsearch_security_group.id), var.additional_security_groups)}"]
+  vpc_security_group_ids = ["${flatten(concat(list(aws_security_group.elasticsearch_security_group.id), var.additional_security_groups))}"]
   iam_instance_profile = "${aws_iam_instance_profile.elasticsearch.id}"
   user_data = "${data.template_file.bootstrap_userdata_script.rendered}"
   key_name = "${var.key_name}"
   subnet_id = "${element(coalescelist(var.cluster_subnet_ids, data.aws_subnet_ids.selected.ids), 0)}"
 
-  tags {
+  tags = {
     Name = "${var.es_cluster}-bootstrap-node"
     Environment = "${var.environment}"
     Cluster = "${var.environment}-${var.es_cluster}"

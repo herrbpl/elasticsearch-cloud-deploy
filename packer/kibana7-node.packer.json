@@ -22,14 +22,14 @@
           "self"
         ],
         "most_recent": true
-      },
-      "spot_price_auto_product": "Linux/UNIX (Amazon VPC)",
+      },      
       "spot_price": "auto",
       "ssh_timeout": "10m",
       "ssh_username": "ubuntu",
       "tags": {
         "ImageType": "kibana7-packer-image"
-      }
+      },
+      "ssh_interface": "public_ip"
     },
     {
       "type": "azure-arm",
